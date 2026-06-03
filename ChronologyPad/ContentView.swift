@@ -72,10 +72,10 @@ final class ChronologyViewModel: ObservableObject {
     @Published var displayMode: ChronologyDisplayMode = .time
     
     @Published var customDictionary: [String: String] = [
-        "いーみす": "EMIS",
-        "えみす": "EMIS",
-        "でぃーまっと": "DMAT",
-        "えすしーゆー": "SCU"
+        "dまt": "DMAT",
+        "えみs": "EMIS",
+        "scう": "SCU",
+        "jまt": "JMAT"
     ]
     
     @Published var newDictionaryKey = ""
@@ -804,7 +804,7 @@ struct ContentView: View {
             )
             .focused($isTitleFocused)
             .onChange(of: isTitleFocused) {
-                if isTitleFocused && vm.chronologyTitle == "無題のクロノロジー" {
+                if isTitleFocused {
                     vm.chronologyTitle = ""
                 }
             }
@@ -1109,12 +1109,12 @@ struct ContentView: View {
 
             VStack(spacing: 16) {
 
-                Text("単語登録")
+                Text("略語登録")
                     .font(.title2)
                     .foregroundColor(.white)
 
                 TextField(
-                    "読み 例: いーみす",
+                    "読み 例: えみs",
                     text: $vm.newDictionaryKey
                 )
                 .padding(12)
@@ -1329,21 +1329,12 @@ struct ContentView: View {
                 Button {
                     showingDictionarySheet = true
                 } label: {
-                    Label("単語登録", systemImage: "text.badge.plus")
+                    Label("略語登録", systemImage: "text.badge.plus")
                 }
                 .buttonStyle(.bordered)
                 .sheet(isPresented: $showingDictionarySheet) {
                     dictionarySheet
                 }
-
-                Spacer()
-
-                Button {
-                    vm.addEntry()
-                } label: {
-                    Label("記録", systemImage: "plus.circle.fill")
-                }
-                .buttonStyle(.borderedProminent)
             }
         }
         .padding(12)
