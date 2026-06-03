@@ -3,14 +3,21 @@ import Combine
 
 // MARK: - Model
 
-struct ChronologyEntry: Identifiable {
+enum EntryMark: String {
+    case none
+    case red
+    case yellow
+    case green
+}
 
+struct ChronologyEntry: Identifiable {
     let id = UUID()
 
     var time: Date
     var sender: String
     var receiver: String
     var content: String
+    var mark: EntryMark = .none
 }
 
 // MARK: - ViewModel
@@ -18,12 +25,12 @@ struct ChronologyEntry: Identifiable {
 final class ChronologyViewModel: ObservableObject {
 
     @Published var entries: [ChronologyEntry] = []
-
+    
     @Published var selectedSender = "本部"
     @Published var selectedReceiver = "自隊"
     @Published var contentText = ""
     @Published var headquartersName = "高知県災害対策本部"
-
+    
     let senderOptions = [
         "本部",
         "自隊",
@@ -41,8 +48,34 @@ final class ChronologyViewModel: ObservableObject {
         "高知大",
         "DMAT"
     ]
+    
+    var sortedEntries: [ChronologyEntry] {
+        entries.sorted { $0.time < $1.time }
+    }
+
+    private func markPriority(_ mark: EntryMark) -> Int {
+        switch mark {
+        case .red:
+            return 0
+        case .yellow:
+            return 1
+        case .green:
+            return 2
+        case .none:
+            return 3
+        }
+    }
 
     // MARK: Add Entry
+    
+    func swapSenderReceiver() {
+
+        let temp = selectedSender
+
+        selectedSender = selectedReceiver
+
+        selectedReceiver = temp
+    }
 
     func addEntry() {
 
@@ -67,6 +100,27 @@ final class ChronologyViewModel: ObservableObject {
 
         contentText = ""
     }
+    
+    func setMark(
+        _ mark: EntryMark,
+        for entry: ChronologyEntry
+    ) {
+
+        guard let index = entries.firstIndex(
+            where: { $0.id == entry.id }
+        ) else {
+            return
+        }
+
+        if entries[index].mark == mark {
+
+            entries[index].mark = .none
+
+        } else {
+
+            entries[index].mark = mark
+        }
+    }
 
     // MARK: Delete Entry
 
@@ -74,6 +128,24 @@ final class ChronologyViewModel: ObservableObject {
 
         entries.removeAll {
             $0.id == entry.id
+        }
+    }
+    
+    func updateTime(
+        for entry: ChronologyEntry,
+        newTime: Date
+    ) {
+
+        guard let index = entries.firstIndex(
+            where: { $0.id == entry.id }
+        ) else {
+            return
+        }
+
+        entries[index].time = newTime
+
+        entries.sort {
+            $0.time < $1.time
         }
     }
 
@@ -156,6 +228,11 @@ final class ChronologyViewModel: ObservableObject {
 struct ContentView: View {
 
     @StateObject private var vm = ChronologyViewModel()
+    @FocusState private var isContentFocused: Bool
+    @FocusState private var isHeadquartersFocused: Bool
+    
+    @State private var editingEntry: ChronologyEntry?
+    @State private var editingTime = Date()
 
     var body: some View {
 
@@ -184,6 +261,63 @@ struct ContentView: View {
                 vm.loadMockData()
             }
         }
+        .sheet(item: $editingEntry) { entry in
+            VStack(spacing: 20) {
+                Text("時刻を修正")
+                    .font(.title2)
+
+                DatePicker(
+                    "時刻",
+                    selection: $editingTime,
+                    displayedComponents: [.hourAndMinute]
+                )
+                .datePickerStyle(.wheel)
+                .labelsHidden()
+
+                Button("保存") {
+                    vm.updateTime(for: entry, newTime: editingTime)
+                    editingEntry = nil
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button("キャンセル") {
+                    editingEntry = nil
+                }
+            }
+            .padding()
+        }
+    }
+    
+    private func chronologyRow(_ entry: ChronologyEntry) -> some View {
+        entryRow(entry)
+            .id(entry.id)
+            .listRowBackground(Color.black)
+            .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                Button {
+                    vm.setMark(.red, for: entry)
+                } label: {
+                    Label("赤", systemImage: "tag.fill")
+                }
+                .tint(.red)
+
+                Button {
+                    vm.setMark(.yellow, for: entry)
+                } label: {
+                    Label("黄", systemImage: "tag.fill")
+                }
+                .tint(.yellow)
+
+                Button {
+                    vm.setMark(.green, for: entry)
+                } label: {
+                    Label("緑", systemImage: "tag.fill")
+                }
+                .tint(.green)
+            }
+            .onTapGesture {
+                editingEntry = entry
+                editingTime = entry.time
+            }
     }
 
     // MARK: Header View
@@ -217,34 +351,33 @@ struct ContentView: View {
         ScrollViewReader { proxy in
             
             List {
-                
                 Section {
-                    
-                    ForEach(
-                        Array(vm.entries.enumerated()),
-                        id: \.element.id
-                    ) { index, entry in
-                        
-                        entryRow(entry)
-                            .listRowInsets(
-                                EdgeInsets(
-                                    top: 0,
-                                    leading: 0,
-                                    bottom: 0,
-                                    trailing: 0
-                                )
-                            )
-                            .listRowBackground(Color.black)
-                        
+                    ForEach(vm.sortedEntries) { entry in
+                        chronologyRow(entry)
                     }
-                    
                 } header: {
-                    
                     dateHeader
                 }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
+            .background(Color.black)
+            .onTapGesture {
+                isContentFocused = false
+                isHeadquartersFocused = false
+            }
+            .onChange(of: vm.entries.count) {
+
+                guard let last = vm.sortedEntries.last else {
+                    return
+                }
+
+                DispatchQueue.main.async {
+                    withAnimation {
+                        proxy.scrollTo(last.id, anchor: .bottom)
+                    }
+                }
+            }
             .background(Color.black)
         }
     }
@@ -274,6 +407,7 @@ struct ContentView: View {
         HStack(spacing: 8) {
 
             Text(vm.formattedTime(entry.time))
+                .foregroundColor(textColor(for: entry.mark))
                 .font(
                     Font.system(
                         size: 16,
@@ -284,12 +418,15 @@ struct ContentView: View {
                 .frame(width: 60, alignment: .leading)
 
             Text(entry.sender)
+                .foregroundColor(textColor(for: entry.mark))
                 .frame(width: 80, alignment: .leading)
 
             Text(entry.receiver)
+                .foregroundColor(textColor(for: entry.mark))
                 .frame(width: 80, alignment: .leading)
 
             Text(entry.content)
+                .foregroundColor(textColor(for: entry.mark))
                 .font(Font.system(size: 20))
                 .lineLimit(1)
                 .truncationMode(.tail)
@@ -301,19 +438,30 @@ struct ContentView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .contentShape(Rectangle())
-        .swipeActions {
-
+        .swipeActions(edge: .trailing) {
             Button(role: .destructive) {
-
                 vm.deleteEntry(entry)
-
             } label: {
-
-                Label(
-                    "削除",
-                    systemImage: "trash"
-                )
+                Label("削除", systemImage: "trash")
             }
+        }
+    }
+    
+    private func textColor(for mark: EntryMark) -> Color {
+
+        switch mark {
+
+        case .none:
+            return .white
+
+        case .red:
+            return .red
+
+        case .yellow:
+            return .yellow
+
+        case .green:
+            return .green
         }
     }
 
@@ -331,6 +479,7 @@ struct ContentView: View {
                     "本部名",
                     text: $vm.headquartersName
                 )
+                .focused($isHeadquartersFocused)
                 .font(.headline)
                 .padding(10)
                 .background(Color.gray.opacity(0.25))
@@ -368,6 +517,17 @@ struct ContentView: View {
                     }
                     .pickerStyle(.menu)
                 }
+                
+                Button {
+
+                    vm.swapSenderReceiver()
+
+                } label: {
+
+                    Image(systemName: "arrow.left.arrow.right")
+                        .font(.title2)
+                }
+                .buttonStyle(.bordered)
 
                 HStack(spacing: 8) {
 
@@ -399,6 +559,7 @@ struct ContentView: View {
                 "内容を入力",
                 text: $vm.contentText
             )
+            .focused($isContentFocused)
             .font(.system(size: 22))
             .padding(12)
             .background(Color.gray.opacity(0.25))
@@ -410,7 +571,6 @@ struct ContentView: View {
             )
             .submitLabel(.done)
             .onSubmit {
-
                 vm.addEntry()
             }
 
@@ -447,15 +607,9 @@ struct ContentView: View {
                 Spacer()
 
                 Button {
-
                     vm.addEntry()
-
                 } label: {
-
-                    Label(
-                        "記録",
-                        systemImage: "plus.circle.fill"
-                    )
+                    Label("記録", systemImage: "plus.circle.fill")
                 }
                 .buttonStyle(.borderedProminent)
             }
