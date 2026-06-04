@@ -18,12 +18,19 @@ enum ChronologyDisplayMode {
     case color
 }
 
+enum ImportMode {
+    case replace
+    case merge
+}
+
 struct ChronologyEntry: Identifiable, Codable {
     let id: UUID
     var time: Date
     var sender: String
     var receiver: String
     var content: String
+    var colorTag: String?
+    var headquarters: String
     var mark: EntryMark = .none
 
     init(
@@ -32,6 +39,7 @@ struct ChronologyEntry: Identifiable, Codable {
         sender: String,
         receiver: String,
         content: String,
+        headquarters: String = "記録元不明",
         mark: EntryMark = .none
     ) {
         self.id = id
@@ -39,6 +47,7 @@ struct ChronologyEntry: Identifiable, Codable {
         self.sender = sender
         self.receiver = receiver
         self.content = content
+        self.headquarters = headquarters
         self.mark = mark
     }
 }
@@ -57,6 +66,7 @@ final class ChronologyViewModel: ObservableObject {
 
         loadCustomDictionary()
         loadEntries()
+        loadTemplates()
 
         if chronologyTitle.isEmpty {
             chronologyTitle = defaultChronologyTitle()
@@ -66,7 +76,7 @@ final class ChronologyViewModel: ObservableObject {
     @Published var selectedReceiver = "自隊"
     @Published var selectedMarkFilter: EntryMark? = nil
     @Published var contentText = ""
-    @Published var headquartersName = "高知県災害対策本部"
+    @Published var headquartersName = "災害対策本部ロジ"
     
     @Published var searchText = ""
     @Published var displayMode: ChronologyDisplayMode = .time
@@ -82,6 +92,92 @@ final class ChronologyViewModel: ObservableObject {
     @Published var newDictionaryValue = ""
     
     @Published var newPartyName = ""
+    
+    @Published var templates: [String] = [
+        "対策本部設置",
+        "指揮所立ち上げ",
+        "連絡要請",
+        "了解しました",
+        "SCU設営開始",
+        "搬送開始",
+        "搬送終了",
+        "到着",
+        "帰着",
+        "解散"
+    ]
+
+    @Published var newTemplateText = ""
+    
+    func saveTemplates() {
+
+        UserDefaults.standard.set(
+            templates,
+            forKey: "ChronologyTemplates"
+        )
+    }
+
+    func loadTemplates() {
+
+        if let saved =
+            UserDefaults.standard.stringArray(
+                forKey: "ChronologyTemplates"
+            ) {
+
+            templates = saved
+        }
+    }
+    
+    func mergeJSON(from url: URL) {
+        do {
+            let accessGranted = url.startAccessingSecurityScopedResource()
+            defer {
+                if accessGranted {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+
+            let data = try Data(contentsOf: url)
+            let importedEntries = try JSONDecoder().decode([ChronologyEntry].self, from: data)
+
+            let existingIDs = Set(entries.map { $0.id })
+            let newEntries = importedEntries.filter {
+                !existingIDs.contains($0.id)
+            }
+
+            entries.append(contentsOf: newEntries)
+            entries.sort { $0.time < $1.time }
+
+            saveEntries()
+
+        } catch {
+            print("JSON追加エラー:", error)
+        }
+    }
+    
+    func addTemplate() {
+
+        let text = newTemplateText
+            .trimmingCharacters(
+                in: .whitespacesAndNewlines
+            )
+
+        guard !text.isEmpty else {
+            return
+        }
+
+        templates.append(text)
+
+        saveTemplates()
+
+        newTemplateText = ""
+    }
+    
+    func deleteTemplate(at offsets: IndexSet) {
+
+        templates.remove(atOffsets: offsets)
+
+        saveTemplates()
+    }
 
     func addPartyName() {
         let name = newPartyName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -269,6 +365,77 @@ final class ChronologyViewModel: ObservableObject {
         }
     }
     
+    func exportPDF() -> URL? {
+
+        let title = safeFileName(chronologyTitle)
+
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(title).pdf")
+
+        let renderer = UIGraphicsPDFRenderer(
+            bounds: CGRect(x: 0, y: 0, width: 595, height: 842)
+        )
+
+        do {
+
+            try renderer.writePDF(to: url) { context in
+
+                context.beginPage()
+
+                let titleAttributes: [NSAttributedString.Key: Any] = [
+                    .font: UIFont.boldSystemFont(ofSize: 22)
+                ]
+
+                let textAttributes: [NSAttributedString.Key: Any] = [
+                    .font: UIFont.systemFont(ofSize: 14)
+                ]
+
+                chronologyTitle.draw(
+                    at: CGPoint(x: 20, y: 20),
+                    withAttributes: titleAttributes
+                )
+
+                var y: CGFloat = 60
+
+                let formatter = DateFormatter()
+                formatter.dateFormat = "HH:mm"
+
+                for entry in entries.sorted(by: { $0.time < $1.time }) {
+
+                    let line =
+    """
+    \(formatter.string(from: entry.time))
+      \(entry.sender)
+    → \(entry.receiver)
+      \(entry.content)
+    """
+
+                    line.draw(
+                        at: CGPoint(x: 20, y: y),
+                        withAttributes: textAttributes
+                    )
+
+                    y += 40
+
+                    if y > 780 {
+
+                        context.beginPage()
+
+                        y = 20
+                    }
+                }
+            }
+
+            return url
+
+        } catch {
+
+            print("PDF出力エラー:", error)
+
+            return nil
+        }
+    }
+    
     func saveEntries() {
         do {
             let data = try JSONEncoder().encode(entries)
@@ -361,7 +528,8 @@ final class ChronologyViewModel: ObservableObject {
             time: Date(),
             sender: selectedSender,
             receiver: selectedReceiver,
-            content: applyCustomDictionary(to: contentText)
+            content: applyCustomDictionary(to: contentText),
+            headquarters: headquartersName
         )
 
         entries.append(newEntry)
@@ -506,10 +674,13 @@ struct ContentView: View {
     @State private var showingNewLogConfirm = false
     @State private var exportURL: URL?
     @State private var showingShareSheet = false
-    @State private var showingJSONImporter = false
     @State private var showingShareFormatDialog = false
-    @State private var showingSaveFormatDialog = false
     @State private var showingPartySheet = false
+    @State private var showingEntryInfo: ChronologyEntry?
+    @State private var showingTemplateSheet = false
+    @State private var importMode: ImportMode = .replace
+    @State private var showingFileImporter = false
+    @State private var showingInfoSheet = false
 
     @StateObject private var vm = ChronologyViewModel()
     @StateObject private var speechRecognizer = SpeechRecognizer()
@@ -624,22 +795,11 @@ struct ContentView: View {
                 ShareSheet(items: [exportURL])
             }
         }
-        .fileImporter(
-            isPresented: $showingJSONImporter,
-            allowedContentTypes: [.json],
-            allowsMultipleSelection: false
-        ) { result in
-            do {
-                guard let url = try result.get().first else {
-                    return
-                }
-                
-                vm.importJSON(from: url)
-                
-            } catch {
-                print("JSON読込エラー:", error)
-            }
+        
+        .sheet(isPresented: $showingInfoSheet) {
+            infoSheet
         }
+        
         .alert("新規クロノロジーを開始しますか？", isPresented: $showingNewLogConfirm) {
             Button("現在のデータをCSV保存して開始") {
                 if let url = vm.exportCSV() {
@@ -665,48 +825,73 @@ struct ContentView: View {
             "共有形式を選択",
             isPresented: $showingShareFormatDialog
         ) {
-
+            
             Button("JSON共有") {
-
+                
                 if let url = vm.exportJSON() {
                     exportURL = url
                     showingShareSheet = true
                 }
             }
-
+            
             Button("CSV共有") {
-
+                
                 if let url = vm.exportCSV() {
                     exportURL = url
                     showingShareSheet = true
                 }
             }
+            
+            Button("PDF共有") {
 
+                if let url = vm.exportPDF() {
+
+                    exportURL = url
+
+                    showingShareSheet = true
+                }
+            }
+            
             Button("キャンセル", role: .cancel) {}
         }
         
-        .confirmationDialog(
-            "保存形式を選択",
-            isPresented: $showingSaveFormatDialog
-        ) {
-
-            Button("JSON保存") {
-
-                if let url = vm.exportJSON() {
-                    exportURL = url
-                    showingShareSheet = true
+        .popover(item: $showingEntryInfo) { entry in
+            ZStack {
+                Color.black
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("記録情報")
+                        .font(.headline)
+                    
+                    Text("記録元：\(entry.headquarters)")
                 }
+                .foregroundColor(.white)
+                .padding()
             }
-
-            Button("CSV保存") {
-
-                if let url = vm.exportCSV() {
-                    exportURL = url
-                    showingShareSheet = true
+            .presentationCompactAdaptation(.popover)
+        }
+        
+        .fileImporter(
+            isPresented: $showingFileImporter,
+            allowedContentTypes: [.json],
+            allowsMultipleSelection: false
+        ) { result in
+            do {
+                guard let url = try result.get().first else {
+                    return
                 }
+                
+                switch importMode {
+                case .replace:
+                    vm.importJSON(from: url)
+                    
+                case .merge:
+                    vm.mergeJSON(from: url)
+                }
+                
+            } catch {
+                print("JSON読込エラー:", error)
             }
-
-            Button("キャンセル", role: .cancel) {}
         }
     }
         
@@ -798,25 +983,37 @@ struct ContentView: View {
         
         VStack(spacing: 0) {
             
-            TextField(
-                "タイトル",
-                text: $vm.chronologyTitle
-            )
-            .focused($isTitleFocused)
-            .onChange(of: isTitleFocused) {
-                if isTitleFocused {
-                    vm.chronologyTitle = ""
+            HStack(spacing: 8) {
+
+                TextField(
+                    "タイトル",
+                    text: $vm.chronologyTitle
+                )
+                .focused($isTitleFocused)
+                .onChange(of: isTitleFocused) {
+                    if isTitleFocused {
+                        vm.chronologyTitle = ""
+                    }
                 }
+                .font(.headline)
+                .padding(10)
+                .background(Color.gray.opacity(0.4))
+                .cornerRadius(8)
+                .foregroundColor(.white)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray, lineWidth: 1)
+                )
+
+                Button {
+                    showingInfoSheet = true
+                } label: {
+                    Image(systemName: "questionmark.circle")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                }
+                .buttonStyle(.plain)
             }
-            .font(.headline)
-            .padding(10)
-            .background(Color.gray.opacity(0.4))
-            .cornerRadius(8)
-            .foregroundColor(.white)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.gray, lineWidth: 1)
-            )
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             
@@ -888,12 +1085,19 @@ struct ContentView: View {
                 .buttonStyle(.bordered)
 
                 Button("保存") {
-                    showingSaveFormatDialog = true
+                    vm.saveEntries()
                 }
                 .buttonStyle(.bordered)
 
                 Button("読込") {
-                    showingJSONImporter = true
+                    importMode = .replace
+                    showingFileImporter = true
+                }
+                .buttonStyle(.bordered)
+
+                Button("追加") {
+                    importMode = .merge
+                    showingFileImporter = true
                 }
                 .buttonStyle(.bordered)
 
@@ -983,7 +1187,7 @@ struct ContentView: View {
                     .font(.title2)
                     .foregroundColor(.white)
 
-                TextField("例: 高知県庁", text: $vm.newPartyName)
+                TextField("例: 遠山病院", text: $vm.newPartyName)
                     .padding(12)
                     .background(Color.gray.opacity(0.4))
                     .cornerRadius(8)
@@ -1021,6 +1225,149 @@ struct ContentView: View {
     }
 
     // MARK: Entry Row
+    
+    private var infoSheet: some View {
+
+        ZStack {
+
+            Color.black
+                .ignoresSafeArea()
+
+            ScrollView {
+
+                VStack(alignment: .leading, spacing: 20) {
+
+                    Text("ChronologyPad")
+                        .font(.title)
+                        .bold()
+
+                    Text("""
+    このアプリケーションは、災害現場などを中心に必要となる「経時的な記録（クロノロジー）」を支援するアプリです。
+
+    「時刻」「発」「受」「内容」など、必要な記録を迅速に入力・閲覧できるよう設計されています。
+    
+    また、他のiPadやPCへcsv/json/PDF形式で出力･共有したり、他のiPadやiPhoneからのデータを統合して表示できる機能を備えています。
+    """)
+
+                    Group {
+
+                        Text("基本操作")
+                            .font(.headline)
+
+                        Text("""
+    ・内容入力後、Returnで記録
+    ・長押しで編集
+    ・右スワイプで色分け
+    ・左スワイプで削除
+    """)
+
+                        Text("保存・共有")
+                            .font(.headline)
+
+                        Text("""
+    ・保存：
+    このiPad内へ保存
+
+    ・読込：
+    保存済JSONを開く
+
+    ・追加：
+    他端末JSONを現在記録へ統合
+
+    ・共有：
+    JSON / CSV / PDF出力
+    """)
+
+                        Text("略語登録")
+                            .font(.headline)
+
+                        Text("""
+    d → DMAT
+
+    のような置換登録が可能です。
+    """)
+
+                        Text("定型文")
+                            .font(.headline)
+
+                        Text("""
+    頻用文章をワンタップ入力できます。
+    """)
+                    }
+
+                    Button("閉じる") {
+                        showingInfoSheet = false
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .foregroundColor(.white)
+                .padding()
+            }
+        }
+    }
+    
+    private var templateSheet: some View {
+
+        ZStack {
+
+            Color.black
+                .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+
+                Text("定型文")
+                    .font(.title2)
+                    .foregroundColor(.white)
+
+                HStack {
+
+                    TextField(
+                        "定型文追加",
+                        text: $vm.newTemplateText
+                    )
+                    .padding(10)
+                    .background(Color.gray.opacity(0.4))
+                    .cornerRadius(8)
+                    .foregroundColor(.white)
+
+                    Button("追加") {
+                        vm.addTemplate()
+                    }
+                }
+
+                List {
+
+                    ForEach(vm.templates, id: \.self) { template in
+
+                        Button {
+
+                            vm.contentText = template
+
+                            vm.addEntry()
+
+                            showingTemplateSheet = false
+
+                        } label: {
+
+                            Text(template)
+                                .foregroundColor(.white)
+                        }
+                        .listRowBackground(Color.black)
+                    }
+                    .onDelete(
+                        perform: vm.deleteTemplate
+                    )
+                }
+                .scrollContentBackground(.hidden)
+                .background(Color.black)
+
+                Button("閉じる") {
+                    showingTemplateSheet = false
+                }
+            }
+            .padding()
+        }
+    }
 
     private func entryRow(_ entry: ChronologyEntry) -> some View {
 
@@ -1072,6 +1419,14 @@ struct ContentView: View {
                     .lineLimit(3)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+            
+            Button {
+                showingEntryInfo = entry
+            } label: {
+                Image(systemName: "info.circle")
+                    .foregroundColor(.gray)
             }
             .buttonStyle(.plain)
         }
@@ -1185,7 +1540,11 @@ struct ContentView: View {
 
             // MARK: HQ Name
 
-            HStack {
+            HStack(spacing: 8) {
+
+                Text("入力者:")
+                    .font(.headline)
+                    .foregroundColor(.white)
 
                 TextField(
                     "本部名",
@@ -1335,6 +1694,17 @@ struct ContentView: View {
                 .sheet(isPresented: $showingDictionarySheet) {
                     dictionarySheet
                 }
+                
+                Button {
+                    showingTemplateSheet = true
+                } label: {
+                    Label("定型文", systemImage: "text.badge.star")
+                }
+                .buttonStyle(.bordered)
+                .sheet(isPresented: $showingTemplateSheet) {
+                    templateSheet
+                }
+
             }
         }
         .padding(12)
