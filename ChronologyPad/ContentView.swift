@@ -666,8 +666,15 @@ struct ContentView: View {
         case content
     }
 
-    @State private var editingField: EditingField?
-    @State private var editingEntry: ChronologyEntry?
+    struct EditingContext: Identifiable {
+        let id = UUID()
+        let entry: ChronologyEntry
+        let field: EditingField
+        var time: Date
+        var text: String
+    }
+
+    @State private var editingContext: EditingContext?
     @State private var editingTime = Date()
     @State private var editingText = ""
     @State private var showingDictionarySheet = false
@@ -712,7 +719,7 @@ struct ContentView: View {
         .onAppear {
             speechRecognizer.requestAuthorization()
         }
-        .sheet(item: $editingEntry) { entry in
+        .sheet(item: $editingContext) { ctx in
             
             ZStack {
                 
@@ -721,7 +728,7 @@ struct ContentView: View {
                 
                 VStack(spacing: 20) {
                     
-                    if editingField == .time {
+                    if ctx.field == .time {
                         
                         Text("時刻を修正")
                             .font(.title2)
@@ -740,7 +747,8 @@ struct ContentView: View {
                         .cornerRadius(12)
                         
                         Button("保存") {
-                            saveEditingEntry(entry)
+                            vm.updateTime(for: ctx.entry, newTime: editingTime)
+                            editingContext = nil
                         }
                         .buttonStyle(.borderedProminent)
                         
@@ -761,28 +769,17 @@ struct ContentView: View {
                             )
                             .submitLabel(.done)
                             .onSubmit {
-                                saveEditingEntry(entry)
+                                saveContext(ctx)
                             }
                         
                         Button("保存") {
-                            switch editingField {
-                            case .sender:
-                                vm.updateSender(for: entry, newSender: editingText)
-                            case .receiver:
-                                vm.updateReceiver(for: entry, newReceiver: editingText)
-                            case .content:
-                                vm.updateContent(for: entry, newContent: editingText)
-                            default:
-                                break
-                            }
-                            
-                            editingEntry = nil
+                            saveContext(ctx)
                         }
                         .buttonStyle(.borderedProminent)
                     }
                     
                     Button("キャンセル") {
-                        editingEntry = nil
+                        editingContext = nil
                     }
                 }
                 .padding()
@@ -798,6 +795,18 @@ struct ContentView: View {
         
         .sheet(isPresented: $showingInfoSheet) {
             infoSheet
+        }
+        
+        .sheet(isPresented: $showingPartySheet) {
+            partySheet
+        }
+        
+        .sheet(isPresented: $showingDictionarySheet) {
+            dictionarySheet
+        }
+        
+        .sheet(isPresented: $showingTemplateSheet) {
+            templateSheet
         }
         
         .alert("新規クロノロジーを開始しますか？", isPresented: $showingNewLogConfirm) {
@@ -901,27 +910,23 @@ struct ContentView: View {
             .listRowBackground(Color.black)
             .contextMenu {
                 Button("時刻を修正") {
-                    editingField = .time
                     editingTime = entry.time
-                    editingEntry = entry
+                    editingContext = EditingContext(entry: entry, field: .time, time: entry.time, text: "")
                 }
                 
                 Button("発を修正") {
-                    editingField = .sender
                     editingText = entry.sender
-                    editingEntry = entry
+                    editingContext = EditingContext(entry: entry, field: .sender, time: entry.time, text: entry.sender)
                 }
                 
                 Button("受を修正") {
-                    editingField = .receiver
                     editingText = entry.receiver
-                    editingEntry = entry
+                    editingContext = EditingContext(entry: entry, field: .receiver, time: entry.time, text: entry.receiver)
                 }
                 
                 Button("内容を修正") {
-                    editingField = .content
                     editingText = entry.content
-                    editingEntry = entry
+                    editingContext = EditingContext(entry: entry, field: .content, time: entry.time, text: entry.content)
                 }
             }
             .swipeActions(edge: .leading, allowsFullSwipe: false) {
@@ -955,27 +960,18 @@ struct ContentView: View {
             }
     }
         
-        private func saveEditingEntry(_ entry: ChronologyEntry) {
-            
-            switch editingField {
-                
+        private func saveContext(_ ctx: EditingContext) {
+            switch ctx.field {
             case .sender:
-                vm.updateSender(for: entry, newSender: editingText)
-                
+                vm.updateSender(for: ctx.entry, newSender: editingText)
             case .receiver:
-                vm.updateReceiver(for: entry, newReceiver: editingText)
-                
+                vm.updateReceiver(for: ctx.entry, newReceiver: editingText)
             case .content:
-                vm.updateContent(for: entry, newContent: editingText)
-                
+                vm.updateContent(for: ctx.entry, newContent: editingText)
             case .time:
-                vm.updateTime(for: entry, newTime: editingTime)
-                
-            default:
-                break
+                vm.updateTime(for: ctx.entry, newTime: editingTime)
             }
-            
-            editingEntry = nil
+            editingContext = nil
         }
     // MARK: Header View
 
@@ -1374,9 +1370,8 @@ struct ContentView: View {
         HStack(spacing: 8) {
 
             Button {
-                editingEntry = entry
-                editingField = .time
                 editingTime = entry.time
+                editingContext = EditingContext(entry: entry, field: .time, time: entry.time, text: "")
             } label: {
                 Text(vm.formattedTime(entry.time))
                     .font(Font.system(size: 16, weight: .semibold))
@@ -1387,9 +1382,8 @@ struct ContentView: View {
             .buttonStyle(.plain)
 
             Button {
-                editingEntry = entry
-                editingField = .sender
                 editingText = entry.sender
+                editingContext = EditingContext(entry: entry, field: .sender, time: entry.time, text: entry.sender)
             } label: {
                 Text(entry.sender)
                     .foregroundColor(textColor(for: entry.mark))
@@ -1398,9 +1392,8 @@ struct ContentView: View {
             .buttonStyle(.plain)
 
             Button {
-                editingEntry = entry
-                editingField = .receiver
                 editingText = entry.receiver
+                editingContext = EditingContext(entry: entry, field: .receiver, time: entry.time, text: entry.receiver)
             } label: {
                 Text(entry.receiver)
                     .foregroundColor(textColor(for: entry.mark))
@@ -1409,9 +1402,8 @@ struct ContentView: View {
             .buttonStyle(.plain)
 
             Button {
-                editingEntry = entry
-                editingField = .content
                 editingText = entry.content
+                editingContext = EditingContext(entry: entry, field: .content, time: entry.time, text: entry.content)
             } label: {
                 Text(entry.content)
                     .font(Font.system(size: 20))
@@ -1625,9 +1617,6 @@ struct ContentView: View {
                     showingPartySheet = true
                 }
                 .buttonStyle(.bordered)
-                .sheet(isPresented: $showingPartySheet) {
-                    partySheet
-                }
 
                 Spacer()
             }
@@ -1691,9 +1680,6 @@ struct ContentView: View {
                     Label("略語登録", systemImage: "text.badge.plus")
                 }
                 .buttonStyle(.bordered)
-                .sheet(isPresented: $showingDictionarySheet) {
-                    dictionarySheet
-                }
                 
                 Button {
                     showingTemplateSheet = true
@@ -1701,9 +1687,6 @@ struct ContentView: View {
                     Label("定型文", systemImage: "text.badge.star")
                 }
                 .buttonStyle(.bordered)
-                .sheet(isPresented: $showingTemplateSheet) {
-                    templateSheet
-                }
 
             }
         }
