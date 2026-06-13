@@ -1,0 +1,836 @@
+{
+  "sourceLanguage" : "ja",
+  "strings" : {
+    "ChronologyPad" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ChronologyPad"
+          }
+        }
+      }
+    },
+    "CSV共有" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share CSV"
+          }
+        }
+      }
+    },
+    "DMAT" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DMAT"
+          }
+        }
+      }
+    },
+    "JSON共有" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share JSON"
+          }
+        }
+      }
+    },
+    "PDF共有" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share PDF"
+          }
+        }
+      }
+    },
+    "SCU" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SCU"
+          }
+        }
+      }
+    },
+    "SCU設営開始" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SCU setup started"
+          }
+        }
+      }
+    },
+    "このアプリケーションは、災害現場などを中心に必要となる「経時的な記録（クロノロジー）」を支援するアプリです。\niPhoneでも動作しますが、基本はiPadで閲覧することを念頭に設計しております。\n\n「時刻」「発」「受」「内容」など、必要な記録を迅速に入力・閲覧できるよう設計されています。\n定型文による一発入力で、入力の手間を減らします。\n赤、黄、緑に色分け･ソートすることで、重要情報やエリア別情報などを視覚的に分けることができます。\n\nまた、他のiPadやPCへcsv/json/PDF形式で出力･共有したり、他のiPadやiPhoneからのデータを統合して表示できる機能を備えています。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This app supports chronological records needed mainly at disaster sites and similar settings.\nIt works on iPhone, but it is designed primarily for viewing on iPad.\n\nIt is designed so you can quickly enter and review the necessary record fields, including Time, From, To, and Details.\nOne-tap templates reduce typing effort.\nColor tagging and sorting with red, yellow, and green can visually separate important information, area-specific information, and other categories.\n\nIt can also export and share records with other iPads or PCs in CSV, JSON, or PDF format, and can merge data from other iPads or iPhones into the current chronology."
+          }
+        }
+      }
+    },
+    "d → DMAT\n\nのような置換登録が可能です。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can register text replacements such as:\n\nd -> DMAT"
+          }
+        }
+      }
+    },
+    "・保存：\nこのiPad内へ保存\n\n・読込：\n保存済JSONを開く\n\n・追加：\n他端末JSONを現在記録へ統合\n\n・共有：\nJSON / CSV / PDF出力" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "- Save:\nSave on this iPad\n\n- Load:\nOpen a saved JSON file\n\n- Add:\nMerge another device's JSON into the current record\n\n- Share:\nExport JSON / CSV / PDF"
+          }
+        }
+      }
+    },
+    "・内容入力後、Returnで記録\n・タップ/長押しで編集\n・右スワイプで色分け\n・左スワイプで削除" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "- Enter details, then press Return to record\n- Tap or long-press to edit\n- Swipe right to color tag\n- Swipe left to delete"
+          }
+        }
+      }
+    },
+    "また、他のiPadやPCへcsv/json/PDF形式で出力･共有したり、他のiPadやiPhoneからのデータを統合して表示できる機能を備えています。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It can also export and share records with other iPads or PCs in CSV, JSON, or PDF format, and can merge data from other iPads or iPhones into the current chronology."
+          }
+        }
+      }
+    },
+    "了解しました" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acknowledged"
+          }
+        }
+      }
+    },
+    "例: 遠山病院" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Example: Toyama Hospital"
+          }
+        }
+      }
+    },
+    "保存" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        }
+      }
+    },
+    "保存せず新規開始" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start new without saving"
+          }
+        }
+      }
+    },
+    "保存・共有" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save and Share"
+          }
+        }
+      }
+    },
+    "停止" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop"
+          }
+        }
+      }
+    },
+    "入力者:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recorder:"
+          }
+        }
+      }
+    },
+    "内容" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details"
+          }
+        }
+      }
+    },
+    "内容を入力" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter details"
+          }
+        }
+      }
+    },
+    "内容を修正" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Details"
+          }
+        }
+      }
+    },
+    "到着" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrived"
+          }
+        }
+      }
+    },
+    "削除" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
+    "受" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To"
+          }
+        }
+      }
+    },
+    "受を修正" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit To"
+          }
+        }
+      }
+    },
+    "変換後 例: EMIS" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Replacement, e.g. EMIS"
+          }
+        }
+      }
+    },
+    "定型文" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Templates"
+          }
+        }
+      }
+    },
+    "定型文追加" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add template"
+          }
+        }
+      }
+    },
+    "対策本部設置" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Response HQ established"
+          }
+        }
+      }
+    },
+    "市役所" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "City Office"
+          }
+        }
+      }
+    },
+    "帰着" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Returned"
+          }
+        }
+      }
+    },
+    "指揮所" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Command Post"
+          }
+        }
+      }
+    },
+    "指揮所立ち上げ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Command post started"
+          }
+        }
+      }
+    },
+    "搬送終了" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transport completed"
+          }
+        }
+      }
+    },
+    "搬送開始" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transport started"
+          }
+        }
+      }
+    },
+    "新規" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New"
+          }
+        }
+      }
+    },
+    "新規クロノロジーを開始しますか？" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start a new chronology?"
+          }
+        }
+      }
+    },
+    "日本語" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Japanese"
+          }
+        }
+      }
+    },
+    "時刻" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time"
+          }
+        }
+      }
+    },
+    "時刻を修正" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Time"
+          }
+        }
+      }
+    },
+    "本部" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HQ"
+          }
+        }
+      }
+    },
+    "本部名" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HQ name"
+          }
+        }
+      }
+    },
+    "本部長" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HQ Chief"
+          }
+        }
+      }
+    },
+    "検索" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
+          }
+        }
+      }
+    },
+    "災害対策本部ロジ" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disaster Response HQ Log"
+          }
+        }
+      }
+    },
+    "災害拠点病院" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disaster Base Hospital"
+          }
+        }
+      }
+    },
+    "現在のクロノロジーは消去されます。必要ならCSV保存してください。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The current chronology will be deleted. Save it as CSV first if needed."
+          }
+        }
+      }
+    },
+    "現在のデータをCSV保存して開始" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save current data as CSV and start"
+          }
+        }
+      }
+    },
+    "発" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From"
+          }
+        }
+      }
+    },
+    "発・受 登録" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Register From / To"
+          }
+        }
+      }
+    },
+    "発を修正" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit From"
+          }
+        }
+      }
+    },
+    "発受登録" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Register Parties"
+          }
+        }
+      }
+    },
+    "県庁" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prefectural Office"
+          }
+        }
+      }
+    },
+    "緑" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Green"
+          }
+        }
+      }
+    },
+    "自隊" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Own Unit"
+          }
+        }
+      }
+    },
+    "色" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color"
+          }
+        }
+      }
+    },
+    "荷受け" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Receiving"
+          }
+        }
+      }
+    },
+    "記録元：%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recorded by: %@"
+          }
+        }
+      }
+    },
+    "記録元不明" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown recorder"
+          }
+        }
+      }
+    },
+    "記録情報" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record Info"
+          }
+        }
+      }
+    },
+    "読込" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load"
+          }
+        }
+      }
+    },
+    "読み 例: えみs" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading, e.g. emis"
+          }
+        }
+      }
+    },
+    "追加" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        }
+      }
+    },
+    "連絡要請" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request contact"
+          }
+        }
+      }
+    },
+    "避難所" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shelter"
+          }
+        }
+      }
+    },
+    "閉じる" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "院長" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hospital Director"
+          }
+        }
+      }
+    },
+    "音声入力" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voice Input"
+          }
+        }
+      }
+    },
+    "頻用文章を登録･ワンタップ入力できます。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Register frequently used text and enter it with one tap."
+          }
+        }
+      }
+    },
+    "マーク" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mark"
+          }
+        }
+      }
+    },
+    "タイトル" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title"
+          }
+        }
+      }
+    },
+    "キャンセル" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "共有" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share"
+          }
+        }
+      }
+    },
+    "共有形式を選択" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Share Format"
+          }
+        }
+      }
+    },
+    "基本操作" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basic Operations"
+          }
+        }
+      }
+    },
+    "救護班" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aid Team"
+          }
+        }
+      }
+    },
+    "修正" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        }
+      }
+    },
+    "登録" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Register"
+          }
+        }
+      }
+    },
+    "略語登録" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbreviations"
+          }
+        }
+      }
+    },
+    "解散" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dismissed"
+          }
+        }
+      }
+    },
+    "赤" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Red"
+          }
+        }
+      }
+    },
+    "黄" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yellow"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

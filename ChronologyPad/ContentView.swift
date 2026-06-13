@@ -4,6 +4,106 @@ import Speech
 import AVFoundation
 import UniformTypeIdentifiers
 
+private enum L10n {
+    static func text(_ key: String.LocalizationValue) -> String {
+        String(localized: key)
+    }
+
+    static var defaultPartyNames: [String] {
+        [
+            text("本部"),
+            text("自隊"),
+            text("災害拠点病院"),
+            text("SCU"),
+            text("避難所"),
+            text("DMAT"),
+            text("本部長"),
+            text("院長"),
+            text("県庁"),
+            text("市役所"),
+            text("指揮所"),
+            text("救護班")
+        ]
+    }
+
+    static var defaultTemplates: [String] {
+        [
+            text("対策本部設置"),
+            text("指揮所立ち上げ"),
+            text("連絡要請"),
+            text("了解しました"),
+            text("SCU設営開始"),
+            text("搬送開始"),
+            text("搬送終了"),
+            text("到着"),
+            text("帰着"),
+            text("解散")
+        ]
+    }
+
+    static var csvHeaders: String {
+        [
+            text("時刻"),
+            text("発"),
+            text("受"),
+            text("内容"),
+            text("マーク")
+        ].joined(separator: ",") + "\n"
+    }
+
+    static var infoOverview: String {
+        text("""
+このアプリケーションは、災害現場などを中心に必要となる「経時的な記録（クロノロジー）」を支援するアプリです。
+iPhoneでも動作しますが、基本はiPadで閲覧することを念頭に設計しております。
+
+「時刻」「発」「受」「内容」など、必要な記録を迅速に入力・閲覧できるよう設計されています。
+定型文による一発入力で、入力の手間を減らします。
+赤、黄、緑に色分け･ソートすることで、重要情報やエリア別情報などを視覚的に分けることができます。
+
+また、他のiPadやPCへcsv/json/PDF形式で出力･共有したり、他のiPadやiPhoneからのデータを統合して表示できる機能を備えています。
+""")
+    }
+
+    static var infoBasicOperations: String {
+        text("""
+・内容入力後、Returnで記録
+・タップ/長押しで編集
+・右スワイプで色分け
+・左スワイプで削除
+""")
+    }
+
+    static var infoSaveShare: String {
+        text("""
+・保存：
+このiPad内へ保存
+
+・読込：
+保存済JSONを開く
+
+・追加：
+他端末JSONを現在記録へ統合
+
+・共有：
+JSON / CSV / PDF出力
+""")
+    }
+
+    static var infoDictionary: String {
+        text("""
+d → DMAT
+
+のような置換登録が可能です。
+""")
+    }
+
+    static var infoTemplates: String {
+        text("""
+頻用文章を登録･ワンタップ入力できます。
+""")
+    }
+}
+
 // MARK: - Model
 
 enum EntryMark: String, Codable {
@@ -39,7 +139,7 @@ struct ChronologyEntry: Identifiable, Codable {
         sender: String,
         receiver: String,
         content: String,
-        headquarters: String = "記録元不明",
+        headquarters: String = L10n.text("記録元不明"),
         mark: EntryMark = .none
     ) {
         self.id = id
@@ -72,11 +172,11 @@ final class ChronologyViewModel: ObservableObject {
             chronologyTitle = defaultChronologyTitle()
         }
     }
-    @Published var selectedSender = "本部"
-    @Published var selectedReceiver = "自隊"
+    @Published var selectedSender = L10n.text("本部")
+    @Published var selectedReceiver = L10n.text("自隊")
     @Published var selectedMarkFilter: EntryMark? = nil
     @Published var contentText = ""
-    @Published var headquartersName = "災害対策本部ロジ"
+    @Published var headquartersName = L10n.text("災害対策本部ロジ")
     
     @Published var searchText = ""
     @Published var displayMode: ChronologyDisplayMode = .time
@@ -93,18 +193,7 @@ final class ChronologyViewModel: ObservableObject {
     
     @Published var newPartyName = ""
     
-    @Published var templates: [String] = [
-        "対策本部設置",
-        "指揮所立ち上げ",
-        "連絡要請",
-        "了解しました",
-        "SCU設営開始",
-        "搬送開始",
-        "搬送終了",
-        "到着",
-        "帰着",
-        "解散"
-    ]
+    @Published var templates: [String] = L10n.defaultTemplates
 
     @Published var newTemplateText = ""
     
@@ -209,35 +298,9 @@ final class ChronologyViewModel: ObservableObject {
         .appendingPathComponent(entriesFileName)
     }
     
-    @Published var senderOptions = [
-        "本部",
-        "自隊",
-        "災害拠点病院",
-        "SCU",
-        "避難所",
-        "DMAT",
-        "本部長",
-        "院長",
-        "県庁",
-        "市役所",
-        "指揮所",
-        "救護班"
-    ]
+    @Published var senderOptions = L10n.defaultPartyNames
 
-    @Published var receiverOptions = [
-        "本部",
-        "自隊",
-        "災害拠点病院",
-        "SCU",
-        "避難所",
-        "DMAT",
-        "本部長",
-        "院長",
-        "県庁",
-        "市役所",
-        "指揮所",
-        "救護班"
-    ]
+    @Published var receiverOptions = L10n.defaultPartyNames
     
     
     
@@ -336,7 +399,7 @@ final class ChronologyViewModel: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy/MM/dd HH:mm"
 
-        var csv = "時刻,発,受,内容,マーク\n"
+        var csv = L10n.csvHeaders
 
         for entry in entries.sorted(by: { $0.time < $1.time }) {
             let line = [
@@ -683,7 +746,6 @@ struct ContentView: View {
     @State private var showingShareSheet = false
     @State private var showingShareFormatDialog = false
     @State private var showingPartySheet = false
-    @State private var showingEntryInfo: ChronologyEntry?
     @State private var showingTemplateSheet = false
     @State private var importMode: ImportMode = .replace
     @State private var showingFileImporter = false
@@ -864,21 +926,7 @@ struct ContentView: View {
             Button("キャンセル", role: .cancel) {}
         }
         
-        .popover(item: $showingEntryInfo) { entry in
-            ZStack {
-                Color.black
-                
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("記録情報")
-                        .font(.headline)
-                    
-                    Text("記録元：\(entry.headquarters)")
-                }
-                .foregroundColor(.white)
-                .padding()
-            }
-            .presentationCompactAdaptation(.popover)
-        }
+        
         
         .fileImporter(
             isPresented: $showingFileImporter,
@@ -1160,6 +1208,39 @@ struct ContentView: View {
         ) {}
     }
 
+    struct EntryInfoButton: View {
+        let entry: ChronologyEntry
+        @State private var isPresented = false
+
+        var body: some View {
+            Button {
+                isPresented = true
+            } label: {
+                Image(systemName: "info.circle")
+                    .foregroundColor(.gray)
+            }
+            .buttonStyle(.plain)
+            .popover(isPresented: $isPresented) {
+                ZStack {
+                    Color.black.ignoresSafeArea()
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("記録情報")
+                            .font(.headline)
+                        Text(
+                            String(
+                                format: L10n.text("記録元：%@"),
+                                entry.headquarters
+                            )
+                        )
+                    }
+                    .foregroundColor(.white)
+                    .padding()
+                }
+                .presentationCompactAdaptation(.popover)
+            }
+        }
+    }
+
     private var dateHeader: some View {
 
         HStack {
@@ -1237,58 +1318,29 @@ struct ContentView: View {
                         .font(.title)
                         .bold()
 
-                    Text("""
-    このアプリケーションは、災害現場などを中心に必要となる「経時的な記録（クロノロジー）」を支援するアプリです。
-
-    「時刻」「発」「受」「内容」など、必要な記録を迅速に入力・閲覧できるよう設計されています。
-    
-    また、他のiPadやPCへcsv/json/PDF形式で出力･共有したり、他のiPadやiPhoneからのデータを統合して表示できる機能を備えています。
-    """)
+                    Text(L10n.infoOverview)
 
                     Group {
 
                         Text("基本操作")
                             .font(.headline)
 
-                        Text("""
-    ・内容入力後、Returnで記録
-    ・長押しで編集
-    ・右スワイプで色分け
-    ・左スワイプで削除
-    """)
+                        Text(L10n.infoBasicOperations)
 
                         Text("保存・共有")
                             .font(.headline)
 
-                        Text("""
-    ・保存：
-    このiPad内へ保存
-
-    ・読込：
-    保存済JSONを開く
-
-    ・追加：
-    他端末JSONを現在記録へ統合
-
-    ・共有：
-    JSON / CSV / PDF出力
-    """)
+                        Text(L10n.infoSaveShare)
 
                         Text("略語登録")
                             .font(.headline)
 
-                        Text("""
-    d → DMAT
-
-    のような置換登録が可能です。
-    """)
+                        Text(L10n.infoDictionary)
 
                         Text("定型文")
                             .font(.headline)
 
-                        Text("""
-    頻用文章をワンタップ入力できます。
-    """)
+                        Text(L10n.infoTemplates)
                     }
 
                     Button("閉じる") {
@@ -1414,13 +1466,7 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
             
-            Button {
-                showingEntryInfo = entry
-            } label: {
-                Image(systemName: "info.circle")
-                    .foregroundColor(.gray)
-            }
-            .buttonStyle(.plain)
+            EntryInfoButton(entry: entry)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
@@ -1668,7 +1714,7 @@ struct ContentView: View {
                 } label: {
 
                     Label(
-                        speechRecognizer.isRecording ? "停止" : "音声入力",
+                        speechRecognizer.isRecording ? L10n.text("停止") : L10n.text("音声入力"),
                         systemImage: speechRecognizer.isRecording ? "stop.fill" : "mic.fill"
                     )
                 }
